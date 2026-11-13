@@ -1,0 +1,124 @@
+---
+pagetitle: "Ranking Players Efficiently"
+format:
+  revealjs:
+    theme: white
+    slide-number: true
+    transition: none
+    center: false
+    width: 1280
+    height: 720
+    margin: 0.09
+    embed-resources: true
+    html-math-method: plain
+    controls: true
+    progress: true
+    highlight-style: github
+execute:
+  enabled: false
+---
+
+
+
+## Ranking players efficiently
+
+<style>
+.reveal { font-family: Arial, sans-serif; font-size: 32px; color: #293947; }
+.reveal h1, .reveal h2 { color: #173e57; font-weight: 600; text-transform: none; }
+.reveal h2 { font-size: 1.5em; margin-bottom: .65em; }
+.reveal p { line-height: 1.45; }
+.reveal pre { font-size: .68em; width: 100%; box-shadow: none; }
+.reveal pre code { padding: 20px; max-height: 430px; }
+.reveal table { margin: .8em 0; font-size: .9em; width: 100%; }
+.reveal table th { color: #173e57; border-bottom: 2px solid #173e57; }
+.reveal table td { border-bottom: 1px solid #dce3e8; }
+.reveal .small { font-size: .66em; color: #526575; }
+.reveal strong { color: #173e57; }
+</style>
+
+A leaderboard needs players in a clear, consistent order.
+
+Our program puts the **highest score first**. When scores are equal, it puts **names in alphabetical order**.
+
+Each player is a `(name, score)` pair in a Python list.
+
+::: {.notes}
+Problem and context, about one minute. Source: rank.py in this project. This is a ranking task, not a comparison between two implemented algorithms.
+:::
+
+## One sort with two rules
+
+We use Python's built-in `sorted()` function.
+
+The key is **`(-score, name)`**. The negative score puts larger scores first. The name breaks ties.
+
+Python calculates each player's key once for the sort. We avoid repeatedly searching for the next highest score.
+
+::: {.notes}
+Method, about one minute. sorted uses a stable adaptive sort, Timsort. Tuple keys compare their first elements and then their second elements when needed. Name ordering is Python string ordering, which is case-sensitive. The supplied generated names have consistent case.
+:::
+
+## The solution
+
+```python
+def solve(players):
+    return sorted(
+        players,
+        key=lambda player: (-player[1], player[0])
+    )
+```
+
+The function returns a **new ranked list**. It keeps the original list unchanged.
+
+::: {.notes}
+Code and correctness, first part. Formatting changes only: the function is equivalent to solve in rank.py. The two key fields directly express the required score order and tie-breaking order.
+:::
+
+## Small tests and results
+
+```python
+small = [("Zoe", 80), ("Ana", 95), ("Bo", 80)]
+
+assert solve(small) == [
+    ("Ana", 95), ("Bo", 80), ("Zoe", 80)
+]
+assert solve([]) == []
+```
+
+**Both tests pass.** Ana comes first with 95 points. Bo comes before Zoe because their scores tie.
+
+An empty input returns an empty list.
+
+::: {.notes}
+Code and correctness, second part. These are the two assertions already present in rank.py, and they were run for this presentation. A separate check confirmed that the input list remains unchanged. Together, the code and test slides take about 1.5 minutes.
+:::
+
+## Measured sorting time
+
+| Number of players | Time per sort |
+|---:|---:|
+| 1,000 | 0.151 ms |
+| 10,000 | 2.308 ms |
+| 20,000 | 5.140 ms |
+
+Expected worst-case time: **O(n log n)**. Extra space: **O(n)**.
+
+::: {.small}
+Measured locally using make_data(n) from rank.py. Median of seven batches, ten sorts per batch. Data generation is excluded. Times vary by computer and input order.
+:::
+
+::: {.notes}
+Efficiency, about one minute. Measurements use timeit rather than one time.time call. Every batch reuses the same unchanged input for its size. make_data produces deterministic patterned scores, (i * 37) % 1000. These measurements do not prove a growth rate. Python's adaptive sort can run in O(n) time on suitably ordered inputs. The O(n log n) bound assumes bounded-cost key comparisons. Name comparisons can cost more for long strings. Extra space includes the new result list, keys and sorting workspace.
+:::
+
+## Reflection
+
+The sort avoids repeatedly scanning the list to find the next winner. One key combines the score rule and the name rule.
+
+The new list uses extra memory, but preserves the original data. Equal scores need a clear tie rule. Names with capital and lowercase letters follow Python's case-sensitive order.
+
+We tested **one method** at different input sizes. We did not compare two methods.
+
+::: {.notes}
+Reflection, about half a minute. Answers the screenshot's questions about repeated work, tradeoffs and edge cases, and comparison inputs. This project folder contains rank.py but no separate challenge-specific discussion question. The slide therefore answers the general discussion prompts supplied in the screenshot.
+:::
