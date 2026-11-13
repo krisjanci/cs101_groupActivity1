@@ -1,3 +1,5 @@
+import time
+
 def make_data(n):
     return [(f"player{i:06d}", (i * 37) % 1000)
             for i in range(n)]
@@ -14,5 +16,14 @@ assert solve(small) == [("Ana", 95), ("Bo", 80), ("Zoe", 80)]
 assert solve([]) == []
 
 
+start = time.time()
+ranked = solve(small)
+end = time.time()
 
-print(solve(small))
+print("Time to sort small:", end - start, "seconds")
+
+start = time.time()
+ranked = solve(data)
+end = time.time()
+
+print("Time to sort data:", end - start, "seconds")
